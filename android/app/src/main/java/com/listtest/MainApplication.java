@@ -1,6 +1,7 @@
 package com.listtest;
 
 import android.app.Application;
+import android.util.Log;
 
 import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactNativeHost;
@@ -10,6 +11,8 @@ import com.facebook.soloader.SoLoader;
 
 import java.util.Arrays;
 import java.util.List;
+
+import go.gotest.Gotest;
 
 public class MainApplication extends Application implements ReactApplication {
 
@@ -35,6 +38,7 @@ public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onCreate() {
     super.onCreate();
+    Log.i("gotest", Gotest.greetings("gotest"));
     SoLoader.init(this, /* native exopackage */ false);
   }
 }

@@ -5,6 +5,6 @@
  */
 import React from 'react';
 import {AppRegistry} from 'react-native';
-import {ListTest} from './ListTest';
+import {MemTest} from './MemTest';
 
-AppRegistry.registerComponent('listtest', () => ListTest);
+AppRegistry.registerComponent('listtest', () => MemTest);

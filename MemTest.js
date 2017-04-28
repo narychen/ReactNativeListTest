@@ -15,36 +15,48 @@ import {
 const Win = Dimensions.get(`window`);
 const Psize = Win.width/3 - 8;
 
-function groupByEveryN(array, n) {
+function groupByEveryN(array, newArray, n) {
   var result = [];
   var temp = [];
-
-  for (var i = 0; i < array.length; ++i) {
+  var last = array[array.length-1];
+  if (last) {
+    var d = n - last.length;
+    if (d > 0) {
+      var a = newArray.slice(0, d);
+      newArray = newArray.slice(d);
+      last = last.concat(a);
+      array[array.length-1] = last;
+    }
+  }
+  for (var i = 0; i < newArray.length; ++i) {
     if (i > 0 && i % n === 0) {
       result.push(temp);
       temp = [];
     }
-    temp.push(array[i]);
+    temp.push(newArray[i]);
+    temp.key = newArray[i].key;
   }
 
   if (temp.length > 0) {
-    while (temp.length !== n) {
-      temp.push(null);
-    }
+    // while (temp.length !== n) {
+    //   temp.push(null);
+    // }
     result.push(temp);
   }
 
-  return result;
+  array.push(...result);
+  return array;
 }
 
-exports.ListTest = React.createClass({
+exports.MemTest = React.createClass({
   getInitialState() {
     this.loadingLock = false;
     this.lastCursor = null;
     this.assets = [];
     this.noMore = false;
+    this.fetching = 0;
     return {
-      testType: 'FlatList',
+      testType: 'ListView',
       dataSource: new ListView.DataSource({rowHasChanged: this.rowHasChanged})
     };
   },
@@ -104,17 +116,22 @@ exports.ListTest = React.createClass({
         this.noMore = true;
       }
       if (data.edges.length > 0) {
-        var assets = data.edges.map(e=>({key:e.node.image.uri}));
+        var assets = [];
+        data.edges.forEach(e=>{
+          if (e.node.image.height > 50 && e.node.image.width > 50) {
+            assets.push({key:e.node.image.uri});
+          }
+        });
         this.lastCursor = data.page_info.end_cursor;
-        this.assets = this.assets.concat(assets);
+        // this.assets = this.assets.concat(assets);
         if (this.state.testType==='ListView') {
           this.setState({
             dataSource: this.state.dataSource.cloneWithRows(
-              groupByEveryN(this.assets, 3)
+              groupByEveryN(this.assets, assets, 3).slice()
             ),
           });
         } else if (this.state.testType==='FlatList') {
-          this.setState({data: groupByEveryN(this.assets, 3)});
+          this.setState({data: groupByEveryN(this.assets, assets, 3)});
         }
       }
     }).catch(err=>{
@@ -131,6 +148,7 @@ exports.ListTest = React.createClass({
   },
   onEndReached() {
     if (!this.noMore) {
+      // console.log('fetching ... ', ++this.fetching);
       this.fetchImages();
     }
   },
@@ -164,7 +182,6 @@ exports.ListTest = React.createClass({
           onEndReached={this.onEndReached}
           data={this.state.data}
           renderItem={this.renderItem}
-          onEndReachedThreshold={Win.height}
         />}
       </View>
     );
